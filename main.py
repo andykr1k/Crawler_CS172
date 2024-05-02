@@ -3,6 +3,7 @@ import requests
 import argparse
 import threading
 import os
+import json
 
 def utf8len(s):
     return len(s.encode('utf-8'))
@@ -34,6 +35,7 @@ args = parser.parse_args()
 
 # Open Output
 f = open(args.out, "w")
+f.write('[')
 f.close()
 
 # URL of the webpage you want to scrape
@@ -55,8 +57,18 @@ while (file_size < 100):
     f = open(args.out, "a")
     # Appends links to file
     for link in links:
-        f.write('https://en.wikipedia.org/' + str(link.get('href')) + '\n')
+        l = 'https://en.wikipedia.org/' + str(link.get('href'))
+        dictionary = {
+            "link": l,
+            "content": ""
+        }
+        json.dump(dictionary, f)
+        f.write(',')
     f.close()
     file_size = os.path.getsize(args.out)
+
+f = open(args.out, "a")
+f.write(']')
+f.close()
 
 print("File Size is :", file_size, "bytes")

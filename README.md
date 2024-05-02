@@ -40,7 +40,7 @@ pip install -r requirements
 #### Example
 
 ```python
-python main.py --hops 6 --pages 10000 --seed seed.txt --out /output
+python main.py --hops 6 --pages 10000 --seed seed.txt --out output.json
 ```
 
 ### Using Crawler.sh/Crawler.bat
@@ -74,10 +74,10 @@ chmod 700 crawler.bat
 
 Unix/Linux
 ```bash
-./crawler.sh 6 10000 seed.txt /output/ 4
+./crawler.sh 6 10000 seed.txt output.json 4
 ```
 
 Windows
 ```bash
-./crawler.bat 6 10000 seed.txt /output/ 4
+./crawler.bat 6 10000 seed.txt output.json 4
 ```
