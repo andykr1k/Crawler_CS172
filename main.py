@@ -1,6 +1,11 @@
 from bs4 import BeautifulSoup
 import requests
 import argparse
+import threading
+import os
+
+def utf8len(s):
+    return len(s.encode('utf-8'))
 
 # Instantiate Argument Parser
 parser = argparse.ArgumentParser()
@@ -27,8 +32,12 @@ args = parser.parse_args()
 # print(args.out)
 # print(args.threads)
 
+# Open Output
+f = open(args.out, "w")
+f.close()
+
 # URL of the webpage you want to scrape
-url = 'https://example.com'
+url = 'https://en.wikipedia.org/wiki/Basketball'
 
 # Send an HTTP request to the URL
 response = requests.get(url)
@@ -37,8 +46,17 @@ response = requests.get(url)
 soup = BeautifulSoup(response.text, 'html.parser')
 
 # Find specific elements on the page
-links = soup.find_all('a')
+content_div = soup.find('div', {'id': 'mw-content-text'})
+links = content_div.find_all('a')
 
-# Print out the links
-for link in links:
-    print(link.get('href'))
+file_size = os.path.getsize(args.out)
+
+while (file_size < 100):
+    f = open(args.out, "a")
+    # Appends links to file
+    for link in links:
+        f.write('https://en.wikipedia.org/' + str(link.get('href')) + '\n')
+    f.close()
+    file_size = os.path.getsize(args.out)
+
+print("File Size is :", file_size, "bytes")
