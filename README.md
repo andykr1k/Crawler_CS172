@@ -2,9 +2,16 @@
 
 ## Setting Up Virtual Enviroment (If Wanted)
 
+Unix/Linux
 ```python
 python -m venv env
 source env/bin/activate
+```
+
+Windows
+```python
+python -m venv env
+source env/Scripts/activate
 ```
 
 ## Installation
@@ -36,12 +43,18 @@ pip install -r requirements
 python main.py --hops 6 --pages 10000 --seed seed.txt --out /output
 ```
 
-### Using Crawler.sh
+### Using Crawler.sh/Crawler.bat
 
 #### Set Up Permissions
 
+Unix/Linux
 ```bash
 chmod 700 crawler.sh
+```
+
+Windows
+```bash
+chmod 700 crawler.bat
 ```
 
 #### Arguments
@@ -59,6 +72,12 @@ chmod 700 crawler.sh
 
 #### Example
 
+Unix/Linux
 ```bash
 ./crawler.sh 6 10000 seed.txt /output/ 4
+```
+
+Windows
+```bash
+./crawler.bat 6 10000 seed.txt /output/ 4
 ```
