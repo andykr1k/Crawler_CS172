@@ -20,22 +20,42 @@ def GetHTML(url):
 # Input: Soup Object and Link Queue
 # Output: Queue filled with links from Soup Object
 def GetLinks(soup, queue):
-    content_div = soup.find('div', {'id': 'mw-content-text'})
-    links = content_div.find_all('a')
-    for link in links:
-        if '#' not in str(link.get('href')) and 'File:' not in str(link.get('href')):
-            if 'https' in str(link.get('href')):
-                queue.append(str(link.get('href')))
-            else:
-                queue.append('https://en.wikipedia.org/' + str(link.get('href')))
+    fin_stream = soup.find('div', {'id': 'Fin-Stream'})
+    if fin_stream:
+        for li in fin_stream.find_all('li'):
+            a_tag = li.find('a', href=True)
+            if a_tag and 'https://' in a_tag['href']:
+                queue.append(a_tag['href'])
     return queue
 
 # Input: Soup Object
 # Output: All text from HTML
 def GetContent(soup):
-    content_div = soup.find('div', {'id': 'mw-content-text'})
-    return content_div.get_text().replace('\n', '')
+    content = []
+    details = {
+        'title': '',
+        'author': '',
+        'date': '',
+        'content': ''
+    }
 
+    title_tag = soup.find('h1', {'id':'caas-lead-header-undefined'})  
+    if title_tag:
+        details['title'] = title_tag.get_text(strip=True)
+
+    author_tag = soup.find('span', class_='caas-author-byline-collapse') 
+    if author_tag:
+        details['author'] = author_tag.get_text(strip=True)
+
+    date_tag = soup.find('dic', {'id': 'caas-attr-time-style'})  
+    if date_tag:
+        details['date_published'] = date_tag.get_text(strip=True)
+
+    for p in soup.find_all('p'):
+        content.append(p.get_text())
+    details['content'] = ' '.join(content)
+
+    return details
 # Input: File Name String
 # Output: N/A
 # Description: Function to create new file, add open bracket for JSON and close file
@@ -66,10 +86,14 @@ def FinishWritingFile(file_path):
 
 # Input: Link String and Content String
 # Output: Dictionary
-def CreateDictionary(link, content):
+def CreateDictionary(link, details):
     dictionary = {
         "link": link,
-        "content": content
+        "title": details['title'],
+        "author": details['author'],
+        "date": details['date'],
+        "content": details['content']
+
     }
     return dictionary
 
@@ -112,7 +136,7 @@ def main():
     CreateFile(args.out)
 
     # URL of the webpage you want to scrape
-    url = 'https://en.wikipedia.org/wiki/Basketball'
+    url = 'https://finance.yahoo.com/topic/stock-market-news/'
 
     # Parse the HTML content of the page
     soup = GetHTML(url)
@@ -135,6 +159,11 @@ def main():
         if CheckFileSize(args.out) > 50000000:
             print("Output file size limited exceeded!")
             break
+
+        article_soup = GetHTML(link)
+        article_details = GetContent(article_soup)
+        dictionary = CreateDictionary(link, article_details)
+        AddToFile(args.out, dictionary)
 
         # Parse the HTML content of the page
         soup = GetHTML(link)
