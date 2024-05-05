@@ -20,22 +20,21 @@ def GetHTML(url):
 # Input: Soup Object and Link Queue
 # Output: Queue filled with links from Soup Object
 def GetLinks(soup, queue):
-    content_div = soup.find('div', {'id': 'mw-content-text'})
-    links = content_div.find_all('a')
+    links = soup.find_all('a', class_='js-content-viewer')
     for link in links:
+        href = link.get('href')
         if '#' not in str(link.get('href')) and 'File:' not in str(link.get('href')):
             if 'https' in str(link.get('href')):
                 queue.append(str(link.get('href')))
             else:
-                queue.append('https://en.wikipedia.org/' + str(link.get('href')))
+                queue.append('https://finance.yahoo.com' + str(link.get('href')))
     return queue
 
 # Input: Soup Object
 # Output: All text from HTML
 def GetContent(soup):
-    content_div = soup.find('div', {'id': 'mw-content-text'})
+    content_div = soup.find('div', {'id': 'Fin-Stream-Proxy'})
     return content_div.get_text().replace('\n', '')
-
 # Input: File Name String
 # Output: N/A
 # Description: Function to create new file, add open bracket for JSON and close file
@@ -112,7 +111,7 @@ def main():
     CreateFile(args.out)
 
     # URL of the webpage you want to scrape
-    url = 'https://en.wikipedia.org/wiki/Basketball'
+    url = 'https://finance.yahoo.com/topic/stock-market-news/'
 
     # Parse the HTML content of the page
     soup = GetHTML(url)
