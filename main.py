@@ -19,15 +19,15 @@ def GetHTML(url):
 
 # Input: Soup Object and Link Queue
 # Output: Queue filled with links from Soup Object
-def GetLinks(soup, queue):
+def GetLinks(soup, queue, depth):
     content_div = soup.find('div', {'id': 'mw-content-text'})
     links = content_div.find_all('a')
     for link in links:
         if '#' not in str(link.get('href')) and 'File:' not in str(link.get('href')):
             if 'https' in str(link.get('href')):
-                queue.append(str(link.get('href')))
+                queue.append((str(link.get('href')), depth + 1))
             else:
-                queue.append('https://en.wikipedia.org/' + str(link.get('href')))
+                queue.append(('https://en.wikipedia.org/' + str(link.get('href')), depth + 1))
     return queue
 
 # Input: Soup Object
@@ -98,7 +98,8 @@ def main():
     # Getting Arguments
     args = parser.parse_args()
 
-    # Testing Arguments
+    #Testing Arguments
+    # print("Testing Args")
     # print(args.hops)
     # print(args.pages)
     # print(args.seed)
@@ -106,13 +107,15 @@ def main():
     # print(args.threads)
 
     # Set Up Link Queue
-    queue = []
+    queue = [(args.seed, 0)]
+
 
     # Create JSON file
     CreateFile(args.out)
 
     # URL of the webpage you want to scrape
-    url = 'https://en.wikipedia.org/wiki/Basketball'
+    
+    url = args.seed
 
     # Parse the HTML content of the page
     soup = GetHTML(url)
@@ -127,9 +130,22 @@ def main():
     AddToFile(args.out, dictionary)
 
     # Get all links from root
-    queue = GetLinks(soup, queue)
+    queue = GetLinks(soup, queue, 0)
+    
+    #Counter initialized at 2 to account for seed page + first page in loop
+    pageCounter = 2
+    MAXIMUM_PAGES = int(args.pages)
+    MAXIMUM_HOPS = int(args.hops)
 
-    for link in queue:
+
+    for link, depth in queue:
+
+        print("Link: ", link, "Depth: ", depth)
+        
+        # Check for number of pages scraped, stop if limit reached
+        if pageCounter > MAXIMUM_PAGES:
+            print("Maximum page count exceeded!")
+            break
 
         # Check for file size and if exceeded stop scraping
         if CheckFileSize(args.out) > 50000000:
@@ -145,8 +161,16 @@ def main():
         # Create Dict
         dictionary = CreateDictionary(link, content)
 
+        #Check current depth, queue links from page if within MAXIMUM_HOPS
+        if depth < MAXIMUM_HOPS:
+            print("Adding links to queue")
+            print("Queue size: ", len(queue))
+            GetLinks(soup, queue, depth)
+
         # Add Dictionary to JSON file
         AddToFile(args.out, dictionary)
+
+        pageCounter = pageCounter + 1
 
     # Finish Writing to file
     FinishWritingFile(args.out)
