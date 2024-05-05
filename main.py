@@ -39,11 +39,11 @@ def GetContent(soup):
         'content': ''
     }
 
-    title_tag = soup.find('h1', {'id':'caas-lead-header-undefined'})  # Adjust tag/class as needed
+    title_tag = soup.find('h1', {'id':'caas-lead-header-undefined'})  
     if title_tag:
         details['title'] = title_tag.get_text(strip=True)
 
-    author_tag = soup.find('span', class_='caas-author-byline-collapse')  # Adjust class as needed
+    author_tag = soup.find('span', class_='caas-author-byline-collapse') 
     if author_tag:
         details['author'] = author_tag.get_text(strip=True)
 
