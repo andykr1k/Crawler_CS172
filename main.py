@@ -7,7 +7,7 @@ import json
 
 # Input: String
 # Output: Size of string in bytes (utf-8)
-def utf8len(s):
+def getLengthUTF8(s):
     return len(s.encode('utf-8'))
 
 # Input: URL String
@@ -25,7 +25,8 @@ def GetLinks(soup, queue, depth):
         for li in fin_stream.find_all('li'):
             a_tag = li.find('a', href=True)
             if a_tag and 'https://' in a_tag['href']:
-                queue.append((a_tag['href'], depth + 1))
+                if 'a.beap.gemini.' not in a_tag['href']:
+                    queue.append((a_tag['href'], depth + 1))
     return queue
 
 # Input: Soup Object
@@ -47,15 +48,18 @@ def GetContent(soup):
     if author_tag:
         details['author'] = author_tag.get_text(strip=True)
 
-    date_tag = soup.find('dic', {'id': 'caas-attr-time-style'})  
+    date_tag = soup.find('div', {'class': 'caas-attr-time-style'})
     if date_tag:
-        details['date_published'] = date_tag.get_text(strip=True)
+        date_tag = date_tag.find('time')
+        details['date'] = date_tag.get_text()
 
     for p in soup.find_all('p'):
         content.append(p.get_text())
+
     details['content'] = ' '.join(content)
 
     return details
+
 # Input: File Name String
 # Output: N/A
 # Description: Function to create new file, add open bracket for JSON and close file
@@ -131,8 +135,7 @@ def main():
     # print(args.threads)
 
     # Set Up Link Queue
-    queue = [(args.seed, 0)]
-
+    queue = []
 
     # Create JSON file
     CreateFile(args.out)
@@ -155,11 +158,9 @@ def main():
     # Get all links from root
     queue = GetLinks(soup, queue, 0)
     
-    # Counter initialized at 2 to account for seed page + first page in loop
-    pageCounter = 2
+    pageCounter = 1
     MAXIMUM_PAGES = int(args.pages)
     MAXIMUM_HOPS = int(args.hops)
-
 
     for link, depth in queue:
 
@@ -174,11 +175,6 @@ def main():
         if CheckFileSize(args.out) > 50000000:
             print("Output file size limited exceeded!")
             break
-
-        article_soup = GetHTML(link)
-        article_details = GetContent(article_soup)
-        dictionary = CreateDictionary(link, article_details)
-        AddToFile(args.out, dictionary)
 
         # Parse the HTML content of the page
         soup = GetHTML(link)
