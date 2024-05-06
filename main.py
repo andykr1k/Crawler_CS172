@@ -139,6 +139,7 @@ def main():
 
     # URL of the webpage you want to scrape
     url = args.seed
+
     # Parse the HTML content of the page
     soup = GetHTML(url)
 
@@ -154,7 +155,7 @@ def main():
     # Get all links from root
     queue = GetLinks(soup, queue, 0)
     
-    #Counter initialized at 2 to account for seed page + first page in loop
+    # Counter initialized at 2 to account for seed page + first page in loop
     pageCounter = 2
     MAXIMUM_PAGES = int(args.pages)
     MAXIMUM_HOPS = int(args.hops)
