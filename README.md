@@ -28,19 +28,19 @@ pip install -r requirements
 
 - "--hops"
   - Number of hops from root
-- "--pages"
-  - Number of pages
 - "--seed"
-  - Path to seed
+  - URL for root
 - "--out"
   - Output directory
 - "--threads"
   - Number of threads
-
+- "--mb"
+  - Size of output file in MB
+  
 #### Example
 
 ```python
-python main.py --hops 6 --pages 10000 --seed https://en.wikipedia.org/wiki/Basketball --out output.json
+python main.py --hops 3 --seed https://finance.yahoo.com/topic/stock-market-news/ --out output.json --threads 4 --mb 2
 ```
 
 ### Using Crawler.sh/Crawler.bat
@@ -62,22 +62,22 @@ chmod 700 crawler.bat
 - First Argument
   - Number of hops from root
 - Second Argument
-  - Number of pages
+  - URL for root
 - Third Argument
-  - Path to seed
-- Fourth Argument
   - Output directory
-- Fifth Argument
+- Fourth Argument
   - Number of threads
-
+- Fifth Argument
+  - Size of output file in MB
+  
 #### Example
 
 Unix/Linux
 ```bash
-./crawler.sh 6 10000 https://en.wikipedia.org/wiki/Basketball output.json 4
+./crawler.sh 3 https://finance.yahoo.com/topic/stock-market-news/ output.json 4 2
 ```
 
 Windows
 ```bash
-./crawler.bat 6 10000 https://en.wikipedia.org/wiki/Basketball output.json 4
+./crawler.bat 3 https://finance.yahoo.com/topic/stock-market-news/ output.json 4 2    
 ```

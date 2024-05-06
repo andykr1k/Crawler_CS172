@@ -12,9 +12,9 @@ def getLengthUTF8(s):
 
 # Input: URL String
 # Output: Beautiful soup object with HTML response
-def GetHTML(url):
-    print("Scraping: ", url)
-    response = requests.get(url)
+def GetHTML(URL):
+    print("Scraping: ", URL)
+    response = requests.get(URL)
     return BeautifulSoup(response.text, 'html.parser')
 
 # Input: Soup Object and Link Queue
@@ -26,7 +26,27 @@ def GetLinks(soup, queue, depth):
             a_tag = li.find('a', href=True)
             if a_tag and 'https://' in a_tag['href']:
                 if 'a.beap.gemini.' not in a_tag['href']:
-                    queue.append((a_tag['href'], depth + 1))
+                    if a_tag['href'] not in queue:
+                        queue.append((a_tag['href'], depth + 1))
+    return queue
+
+# Input: Soup Object and Link Queue
+# Output: Queue filled with links from Soup Object
+def GetDepthLinks(soup, queue, depth, hops, URL):
+    if hops < depth:
+        return queue
+    links = soup.find_all('a')
+    for link in links:
+        if 'href' in link.attrs:
+            if 'https://' not in link['href']:
+                l = URL + link['href']
+                print(l)
+                if l not in queue:
+                    queue.append((l, depth))
+            else:
+                if link['href'] not in queue:
+                    print(link['href'])
+                    queue.append((link['href'], depth))
     return queue
 
 # Input: Soup Object
@@ -107,73 +127,19 @@ def CheckFileSize(file_name):
     file_size = os.path.getsize(file_name)
     return file_size
 
-def main():
-    # Instantiate Argument Parser
-    parser = argparse.ArgumentParser()
-
-    # Adding Arguments
-    parser.add_argument('--hops', dest='hops',
-                        type=str, help='Add number of hops from seed')
-    parser.add_argument('--pages', dest='pages',
-                        type=str, help='Add total number of pages')
-    parser.add_argument('--seed', dest='seed',
-                        type=str, help='Add path to seed file')
-    parser.add_argument('--out', dest='out',
-                        type=str, help='Add output directory')
-    parser.add_argument('--threads', dest='threads',
-                        type=str, help='Add number of threads')
-
-    # Getting Arguments
-    args = parser.parse_args()
-
-    #Testing Arguments
-    # print("Testing Args")
-    # print(args.hops)
-    # print(args.pages)
-    # print(args.seed)
-    # print(args.out)
-    # print(args.threads)
-
-    # Set Up Link Queue
-    queue = []
-
-    # Create JSON file
-    CreateFile(args.out)
-
-    # URL of the webpage you want to scrape
-    url = args.seed
-
-    # Parse the HTML content of the page
-    soup = GetHTML(url)
-
-    # Get Root Content
-    content = GetContent(soup)
-
-    # Create Root Dict
-    dictionary = CreateDictionary(url, content)
-
-    # Add Dictionary to JSON file
-    AddToFile(args.out, dictionary)
-
-    # Get all links from root
-    queue = GetLinks(soup, queue, 0)
-    
-    pageCounter = 1
-    MAXIMUM_PAGES = int(args.pages)
-    MAXIMUM_HOPS = int(args.hops)
-
-    for link, depth in queue:
-
-        print("Link: ", link, "Depth: ", depth)
-        
-        # Check for number of pages scraped, stop if limit reached
-        if pageCounter > MAXIMUM_PAGES:
-            print("Maximum page count exceeded!")
+# Main scraping function after seed has been scraped (Used for multithreading)
+def ScrapeWrite(queue, OUTPUT_FILE, MAXIMUM_BYTES, MAXIMUM_HOPS, URL):
+    while True:
+        try:
+            link, depth = queue.pop(0)
+        except IndexError:
             break
+        print("Link: ", link, "Depth: ", depth)
+        print("File Size: ", CheckFileSize(OUTPUT_FILE))
 
         # Check for file size and if exceeded stop scraping
-        if CheckFileSize(args.out) > 50000000:
-            print("Output file size limited exceeded!")
+        if CheckFileSize(OUTPUT_FILE) > MAXIMUM_BYTES:
+            print("Output file size limit exceeded!")
             break
 
         # Parse the HTML content of the page
@@ -185,21 +151,86 @@ def main():
         # Create Dict
         dictionary = CreateDictionary(link, content)
 
-        #Check current depth, queue links from page if within MAXIMUM_HOPS
+        # Check current depth, queue links from page if within MAXIMUM_HOPS
         if depth < MAXIMUM_HOPS:
             print("Adding links to queue")
             print("Queue size: ", len(queue))
-            GetLinks(soup, queue, depth)
+            queue = GetDepthLinks(
+                soup, queue, depth+1, MAXIMUM_HOPS, URL)
 
         # Add Dictionary to JSON file
-        AddToFile(args.out, dictionary)
+        AddToFile(OUTPUT_FILE, dictionary)
 
-        pageCounter = pageCounter + 1
+    print("Thread finished.")
+
+def main():
+    # Instantiate Argument Parser
+    parser = argparse.ArgumentParser()
+
+    # Adding Arguments
+    parser.add_argument('--hops', dest='hops',
+                        type=str, help='Add number of hops from seed')
+    parser.add_argument('--seed', dest='seed',
+                        type=str, help='Add path to seed file')
+    parser.add_argument('--out', dest='out',
+                        type=str, help='Add output directory')
+    parser.add_argument('--threads', dest='threads',
+                        type=str, help='Add number of threads')
+    parser.add_argument('--mb', dest='mb',
+                        type=str, help='Add file size for output (MB)')
+
+    # Getting Arguments
+    args = parser.parse_args()
+
+    #Testing Arguments
+    # print("Testing Args")
+    # print(args.hops)
+    # print(args.seed)
+    # print(args.out)
+    # print(args.threads)
+    # print(args.mb)
+
+    MAXIMUM_HOPS = int(args.hops)
+    MAXIMUM_BYTES = float(args.mb) * 1000000
+    THREADS = int(args.threads) if args.threads else 1
+    OUTPUT_FILE = args.out
+    URL = args.seed
+    
+    # Set Up Link Queue
+    queue = []
+
+    # Create JSON file
+    CreateFile(OUTPUT_FILE)
+
+    # Parse the HTML content of the page
+    soup = GetHTML(URL)
+
+    # Get Root Content
+    content = GetContent(soup)
+
+    # Create Root Dict
+    dictionary = CreateDictionary(URL, content)
+
+    # Add Dictionary to JSON file
+    AddToFile(OUTPUT_FILE, dictionary)
+
+    # Get all links from root
+    queue = GetLinks(soup, queue, 0)
+
+    threads = []
+    for _ in range(THREADS):
+        t = threading.Thread(target=ScrapeWrite, args=(
+            queue, OUTPUT_FILE, MAXIMUM_BYTES, MAXIMUM_HOPS, URL))
+        t.start()
+        threads.append(t)
+
+    for t in threads:
+        t.join()
 
     # Finish Writing to file
-    FinishWritingFile(args.out)
+    FinishWritingFile(OUTPUT_FILE)
     
     # Print file size at end of script
-    print("File Size is :", CheckFileSize(args.out), "bytes")
+    print("File Size is :", CheckFileSize(OUTPUT_FILE), "bytes")
 
 main()

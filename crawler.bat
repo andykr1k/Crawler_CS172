@@ -1,1 +1,1 @@
-python main.py --hops $1 --pages $2 --seed $3 --out $4 --threads $5
+python main.py --hops $1 --seed $2 --out $3 --threads $4 --mb $5
