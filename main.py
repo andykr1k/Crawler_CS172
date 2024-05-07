@@ -104,7 +104,7 @@ def AddHTMLToFolder(soup):
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
 
-    with open(file_path, "w") as file:
+    with open(file_path, "w", encoding="utf-8") as file:
         file.write(html_string)
 
     return
@@ -251,7 +251,7 @@ def main():
     # Add Dictionary to JSON file
     AddToFile(OUTPUT_FILE, dictionary)
     MAXIMUM_PAGES -= 1
-    
+
     # Get all links from root
     queue = GetLinks(soup, queue, 0)
 
