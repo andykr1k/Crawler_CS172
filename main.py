@@ -42,12 +42,10 @@ def GetDepthLinks(soup, queue, depth, hops, URL):
         if 'href' in link.attrs:
             if 'https://' not in link['href']:
                 l = URL + link['href']
-                #print(l)
                 if l not in queue:
                     queue.append((l, depth))
             else:
                 if link['href'] not in queue:
-                    #print(link['href'])
                     queue.append((link['href'], depth))
     return queue
 
@@ -179,7 +177,7 @@ def ScrapeWrite(queue, OUTPUT_FILE, MAXIMUM_BYTES, MAXIMUM_HOPS, URL):
             print("Adding links to queue")
             print("Queue size: ", len(queue))
             queue = GetDepthLinks(
-                soup, queue, depth, MAXIMUM_HOPS, URL)
+                soup, queue, depth+1, MAXIMUM_HOPS, URL)
 
         # Add Dictionary to JSON file
         AddToFile(OUTPUT_FILE, dictionary)
@@ -201,7 +199,9 @@ def main():
                         type=str, help='Add number of threads')
     parser.add_argument('--mb', dest='mb',
                         type=str, help='Add file size for output (MB)')
-
+    parser.add_argument('--pages', dest='pages',
+                    type=str, help='Max number of pages to scrape')
+    
     # Getting Arguments
     args = parser.parse_args()
 
@@ -214,6 +214,7 @@ def main():
     THREADS = int(args.threads) if args.threads else 1
     OUTPUT_FILE = args.out
     URL = args.seed
+    MAXIMUM_PAGES = int(args.pages)
 
     try:
         response = requests.head(URL)
@@ -249,7 +250,8 @@ def main():
 
     # Add Dictionary to JSON file
     AddToFile(OUTPUT_FILE, dictionary)
-
+    MAXIMUM_PAGES -= 1
+    
     # Get all links from root
     queue = GetLinks(soup, queue, 0)
 
@@ -262,7 +264,7 @@ def main():
 
     for t in threads:
         t.join()
-
+        
     # Finish Writing to file
     FinishWritingFile(OUTPUT_FILE)
     
