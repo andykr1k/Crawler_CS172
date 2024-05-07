@@ -15,7 +15,9 @@ def getLengthUTF8(s):
 def GetHTML(URL):
     print("Scraping: ", URL)
     response = requests.get(URL)
-    return BeautifulSoup(response.text, 'html.parser')
+    soup = BeautifulSoup(response.text, 'html.parser')
+    AddHTMLToFolder(soup)
+    return soup
 
 # Input: Soup Object and Link Queue
 # Output: Queue filled with links from Soup Object
@@ -88,6 +90,24 @@ def CreateFile(file_name):
     f.write('[')
     f.close()
     return
+
+def AddHTMLToFolder(soup):
+    html_string = str(soup.prettify())
+    page_title = soup.find('title').string.replace(" ", "_")
+    file_name = f"{page_title}.html"
+
+    folder_name = "HTML_Pages"
+    file_path = os.path.join(folder_name, file_name)
+    print("path: ", file_path)
+
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
+    with open(file_path, "w") as file:
+        file.write(html_string)
+
+    return
+
 
 # Input: File Name String and dictionary object
 # Output: N/A
@@ -204,6 +224,9 @@ def main():
 
     # Parse the HTML content of the page
     soup = GetHTML(URL)
+    AddHTMLToFolder(soup)
+
+    
 
     # Get Root Content
     content = GetContent(soup)
@@ -229,6 +252,7 @@ def main():
 
     # Finish Writing to file
     FinishWritingFile(OUTPUT_FILE)
+    
     
     # Print file size at end of script
     print("File Size is :", CheckFileSize(OUTPUT_FILE), "bytes")
