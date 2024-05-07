@@ -224,8 +224,6 @@ def main():
 
     # Parse the HTML content of the page
     soup = GetHTML(URL)
-    AddHTMLToFolder(soup)
-
     
 
     # Get Root Content
