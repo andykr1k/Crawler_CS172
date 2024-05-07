@@ -60,9 +60,9 @@ def GetContent(soup):
         'content': ''
     }
 
-    title_tag = soup.find('h1', {'id':'caas-lead-header-undefined'})  
+    title_tag = soup.find('title')
     if title_tag:
-        details['title'] = title_tag.get_text(strip=True)
+        details['title'] = title_tag.string
 
     author_tag = soup.find('span', class_='caas-author-byline-collapse') 
     if author_tag:
@@ -195,7 +195,7 @@ def main():
     THREADS = int(args.threads) if args.threads else 1
     OUTPUT_FILE = args.out
     URL = args.seed
-    
+
     # Set Up Link Queue
     queue = []
 
