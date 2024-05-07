@@ -183,7 +183,7 @@ def main():
     args = parser.parse_args()
 
     if not (args.hops and args.seed and args.out):
-        print("Insufficient arguments. Please include the hops, seed and out")
+        print("Insufficient argument. Include the hops, seed and out")
         return
     
     try:
