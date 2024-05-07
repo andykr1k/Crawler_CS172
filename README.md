@@ -36,11 +36,13 @@ pip install -r requirements
   - Number of threads
 - "--mb"
   - Size of output file in MB
+- "--pages"
+  - Number of pages to scrape
   
 #### Example
 
 ```python
-python main.py --hops 3 --seed https://finance.yahoo.com/topic/stock-market-news/ --out output.json --threads 4 --mb 2
+python main.py --hops 3 --seed https://finance.yahoo.com/topic/stock-market-news/ --out output.json --threads 4 --mb 2 --pages 10000
 ```
 
 ### Using Crawler.sh/Crawler.bat
@@ -69,15 +71,17 @@ chmod 700 crawler.bat
   - Number of threads
 - Fifth Argument
   - Size of output file in MB
+- Sixth Argument
+  - Max number of pages to scrape
   
 #### Example
 
 Unix/Linux
 ```bash
-./crawler.sh 3 https://finance.yahoo.com/topic/stock-market-news/ output.json 4 2
+./crawler.sh 3 https://finance.yahoo.com/topic/stock-market-news/ output.json 4 0.8 10000
 ```
 
 Windows
 ```bash
-./crawler.bat 3 https://finance.yahoo.com/topic/stock-market-news/ output.json 4 2    
+./crawler.bat 3 https://finance.yahoo.com/topic/stock-market-news/ output.json 4 0.8 10000   
 ```
