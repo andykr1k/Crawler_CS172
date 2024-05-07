@@ -1,0 +1,1 @@
+./crawler.bat 6 https://finance.yahoo.com/topic/stock-market-news/ output.json 4 0.1
