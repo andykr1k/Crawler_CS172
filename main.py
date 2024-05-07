@@ -42,12 +42,12 @@ def GetDepthLinks(soup, queue, depth, hops, URL):
         if 'href' in link.attrs:
             if 'https://' not in link['href']:
                 l = URL + link['href']
-                print(l)
+                #print(l)
                 if l not in queue:
                     queue.append((l, depth))
             else:
                 if link['href'] not in queue:
-                    print(link['href'])
+                    #print(link['href'])
                     queue.append((link['href'], depth))
     return queue
 
@@ -101,7 +101,7 @@ def AddHTMLToFolder(soup):
 
     folder_name = "HTML_Pages"
     file_path = os.path.join(folder_name, file_name)
-    print("path: ", file_path)
+    print("HTML added to path: ", file_path)
 
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
@@ -156,8 +156,9 @@ def ScrapeWrite(queue, OUTPUT_FILE, MAXIMUM_BYTES, MAXIMUM_HOPS, URL):
             link, depth = queue.pop(0)
         except IndexError:
             break
-        print("Link: ", link, "Depth: ", depth)
+        print("Link: ", link, "\nDepth from root: ", depth)
         print("File Size: ", CheckFileSize(OUTPUT_FILE))
+        print("\n")
 
         # Check for file size and if exceeded stop scraping
         if CheckFileSize(OUTPUT_FILE) > MAXIMUM_BYTES:
@@ -178,7 +179,7 @@ def ScrapeWrite(queue, OUTPUT_FILE, MAXIMUM_BYTES, MAXIMUM_HOPS, URL):
             print("Adding links to queue")
             print("Queue size: ", len(queue))
             queue = GetDepthLinks(
-                soup, queue, depth+1, MAXIMUM_HOPS, URL)
+                soup, queue, depth, MAXIMUM_HOPS, URL)
 
         # Add Dictionary to JSON file
         AddToFile(OUTPUT_FILE, dictionary)
