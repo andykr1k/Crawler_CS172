@@ -182,6 +182,19 @@ def main():
     # Getting Arguments
     args = parser.parse_args()
 
+    if not (args.hops and args.seed and args.out):
+        print("Insufficient arguments. Please include the hops, seed and out")
+        return
+    
+    try:
+        response = requests.head(URL)
+        if response.status_code != 200:
+            print("Invalid seed URL.")
+            return
+    except requests.exceptions.RequestException as e:
+        print("Error:", e)
+        return
+
     #Testing Arguments
     # print("Testing Args")
     # print(args.hops)
