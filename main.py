@@ -91,6 +91,9 @@ def CreateFile(file_name):
     f.close()
     return
 
+# Input: Soup Object
+# Output: N/A
+# Description: Function to create files and save HTML files in HTML_Pages folder
 def AddHTMLToFolder(soup):
     html_string = str(soup.prettify())
     page_title = soup.find('title').string.replace(" ", "_")
@@ -107,7 +110,6 @@ def AddHTMLToFolder(soup):
         file.write(html_string)
 
     return
-
 
 # Input: File Name String and dictionary object
 # Output: N/A
@@ -206,6 +208,12 @@ def main():
         print("Insufficient argument. Include the hops, seed and out")
         return
     
+    MAXIMUM_HOPS = int(args.hops)
+    MAXIMUM_BYTES = float(args.mb) * 1000000
+    THREADS = int(args.threads) if args.threads else 1
+    OUTPUT_FILE = args.out
+    URL = args.seed
+
     try:
         response = requests.head(URL)
         if response.status_code != 200:
@@ -223,12 +231,6 @@ def main():
     # print(args.threads)
     # print(args.mb)
 
-    MAXIMUM_HOPS = int(args.hops)
-    MAXIMUM_BYTES = float(args.mb) * 1000000
-    THREADS = int(args.threads) if args.threads else 1
-    OUTPUT_FILE = args.out
-    URL = args.seed
-
     # Set Up Link Queue
     queue = []
 
@@ -237,7 +239,6 @@ def main():
 
     # Parse the HTML content of the page
     soup = GetHTML(URL)
-    
 
     # Get Root Content
     content = GetContent(soup)
@@ -263,7 +264,6 @@ def main():
 
     # Finish Writing to file
     FinishWritingFile(OUTPUT_FILE)
-    
     
     # Print file size at end of script
     print("File Size is :", CheckFileSize(OUTPUT_FILE), "bytes")
