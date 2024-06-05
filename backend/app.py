@@ -104,14 +104,13 @@ def retrieve(storedir, query):
 
     return topkdocs
 
-def main():
-    print("Indexing...")
 
-    lucene.initVM(vmargs=['-Djava.awt.headless=true'])
-    create_index(index_dir, html_dir)
+print("Indexing...")
+
+lucene.initVM(vmargs=['-Djava.awt.headless=true'])
+create_index(index_dir, html_dir)
 
 app = Flask(__name__)
-
 
 @app.route('/')
 def root():
@@ -122,5 +121,4 @@ def search(query):
     return retrieve(os.path.join(os.getcwd(), 'pylucene_index'), query)
   
 if __name__ == "__main__":
-    main()
-    app.run(debug=True, port=3000)
+    app.run(host='0.0.0.0', port=3000)
