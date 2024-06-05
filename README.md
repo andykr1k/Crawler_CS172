@@ -94,7 +94,7 @@ Windows
 
 python3 pylucene_indexer.py ~/Crawler_CS172/HTML_Pages/ ~/Crawler_CS172/new_lucene_index/ "NASDAQ Google"
 
-## Arugments
+#### Arugments
 
 1) ~/Crawler_CS172/HTML_Pages/ = Directory of HTML Pages to index
 2) ~/Crawler_CS172/new_lucene_index/ = Directory to output index files to
