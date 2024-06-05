@@ -94,9 +94,12 @@ def CreateFile(file_name):
 # Description: Function to create files and save HTML files in HTML_Pages folder
 def AddHTMLToFolder(soup):
     html_string = str(soup.prettify())
-    page_title = soup.find('title').string.replace(
-        " ", "_").replace("/", "_").replace("\\", "_")
-    file_name = f"{page_title}.html"
+    if soup.find('title'):
+        page_title = soup.find('title').string.replace(
+            " ", "_").replace("/", "_").replace("\\", "_")
+        file_name = f"{page_title}.html"
+    else:
+        file_name = "error.html"
 
     folder_name = "HTML_Pages"
     file_path = os.path.join(folder_name, file_name)
