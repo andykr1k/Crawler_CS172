@@ -1,5 +1,5 @@
 export default async function Query(query) {
-  const url = "https://localhost:8000/search/" + query;
+  const url = "https://localhost:3000/search/" + query;
 
   try {
     const response = await fetch(url, {
