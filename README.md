@@ -18,6 +18,10 @@ source env/Scripts/activate
 
 ```python
 pip install -r requirements
+
+brew install subversion
+
+svn co https://svn.apache.org/repos/asf/lucene/pylucene/trunk/jcc jcc
 ```
 
 ## Usage
@@ -85,3 +89,15 @@ Windows
 ```bash
 ./crawler.bat 3 https://finance.yahoo.com/topic/stock-market-news/ output.json 4 0.8 10000   
 ```
+
+### Indexer Run Command Example
+
+python3 pylucene_indexer.py ~/Crawler_CS172/HTML_Pages/ ~/Crawler_CS172/new_lucene_index/ "NASDAQ Google"
+
+## Arugments
+
+1) ~/Crawler_CS172/HTML_Pages/ = Directory of HTML Pages to index
+2) ~/Crawler_CS172/new_lucene_index/ = Directory to output index files to
+3) "NASDAQ Google" = Query/Terms to be searched
+
+
