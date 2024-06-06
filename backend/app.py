@@ -12,7 +12,7 @@ from org.apache.lucene.queryparser.classic import QueryParser
 from org.apache.lucene.index import IndexWriter, IndexWriterConfig, IndexOptions, DirectoryReader
 from org.apache.lucene.search import IndexSearcher
 
-logging.disable(sys.maxsize)
+# logging.disable(sys.maxsize)
 
 index_dir = os.getcwd()
 
