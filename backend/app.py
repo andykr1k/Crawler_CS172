@@ -22,6 +22,7 @@ json_location = os.path.join(os.getcwd(), 'crawler', 'output.json')
 
 os.chdir(os.path.join(os.getcwd(), 'backend'))
 
+
 def create_index(dir):
     if not os.path.exists(dir):
         os.mkdir(dir)
@@ -56,7 +57,6 @@ def create_index(dir):
                     doc.add(Field('Body', str(obj['content']), contextType))
                     writer.addDocument(doc)
                 writer.close()
-                print("JSON data loaded successfully.")
             except json.JSONDecodeError as e:
                 print(f"JSONDecodeError: {e}")
             except Exception as e:
@@ -94,9 +94,11 @@ def retrieve(storedir, query):
 
     return topkdocs
 
+
 print("Indexing...")
 lucene.initVM(vmargs=['-Djava.awt.headless=true'])
 create_index(index_dir)
+
 
 @app.route('/')
 def root():
@@ -108,7 +110,6 @@ def search(query):
     results = retrieve(index_dir, query)
     print(results)
     return jsonify(results)
-
 
 
 if __name__ == "__main__":
