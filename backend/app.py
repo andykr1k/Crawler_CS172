@@ -45,11 +45,11 @@ def create_index(dir):
 
     for obj in data:
         doc = Document()
-        doc.add(Field('Title', str(obj.title), metaType))
-        doc.add(Field('Link', str(obj.link), metaType))
-        doc.add(Field('Author', str(obj.author), metaType))
-        doc.add(Field('Date', str(obj.date), metaType))
-        doc.add(Field('Body', str(obj.content), contextType))
+        doc.add(Field('Title', str(obj['title']), contextType))
+        doc.add(Field('Link', str(obj['link']), metaType))
+        doc.add(Field('Author', str(obj['author']), metaType))
+        doc.add(Field('Date', str(obj['date']), metaType))
+        doc.add(Field('Body', str(obj['content']), contextType))
         writer.addDocument(doc)
 
     writer.close()
