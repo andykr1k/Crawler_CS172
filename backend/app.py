@@ -75,6 +75,7 @@ def create_index(dir, html_dir):
 
 
 def retrieve(storedir, query):
+    print(storedir)
     searchDir = NIOFSDirectory(Paths.get(storedir))
     searcher = IndexSearcher(DirectoryReader.open(searchDir))
 
