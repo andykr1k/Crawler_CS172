@@ -72,6 +72,8 @@ def create_index(dir, html_dir):
 def retrieve(storedir, query):
     print("storedir = ", storedir)
     print("q = ", query)
+    print("paths.get = ", Paths.get(storedir))
+    print("paths.get = ", Paths.get('index'))
     searchDir = NIOFSDirectory(Paths.get(storedir))
     print("searchdir = ", searchDir)
     searcher = IndexSearcher(DirectoryReader.open(searchDir))
@@ -97,7 +99,7 @@ def retrieve(storedir, query):
             "title": doc.get("Title").replace('\n', '').replace('\t', ''),
             "text": body_text
         })
-        
+
     print("topkdocs = ", topkdocs)
 
     return topkdocs
@@ -113,12 +115,10 @@ def root():
 
 @app.route('/search/<query>', methods=['GET'])
 def search(query):
-    try:
-        results = retrieve(os.path.join(os.getcwd(), 'index'), query)
-        print(results)
-        return jsonify(results)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    results = retrieve(os.path.join(os.getcwd(), 'index'), query)
+    print(results)
+    return jsonify(results)
+
 
 
 if __name__ == "__main__":
