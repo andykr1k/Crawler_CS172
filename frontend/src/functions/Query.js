@@ -1,5 +1,5 @@
 export default async function Query(query) {
-  const url = "https://localhost:3000/search/" + query;
+  const url = "http://class-067.cs.ucr.edu:8080/search/" + query;
 
   try {
     const response = await fetch(url, {

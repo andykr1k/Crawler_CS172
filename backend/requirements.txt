@@ -3,3 +3,4 @@ requests
 subversion
 JCC
 lucene
+flask-cors

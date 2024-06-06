@@ -1,6 +1,7 @@
 import os
 from flask import Flask, jsonify
 from bs4 import BeautifulSoup
+from flask_cors import CORS
 import sys
 import lucene
 from org.apache.lucene.store import SimpleFSDirectory, NIOFSDirectory
@@ -12,6 +13,7 @@ from org.apache.lucene.index import IndexWriter, IndexWriterConfig, IndexOptions
 from org.apache.lucene.search import IndexSearcher
 
 app = Flask(__name__)
+CORS(app)
 
 index_dir = os.path.join(os.getcwd(), 'index')
 
