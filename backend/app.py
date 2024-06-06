@@ -18,10 +18,10 @@ print("index_dir = ", index_dir)
 os.chdir("../")
 
 html_dir = os.path.join(os.getcwd(), 'crawler', 'HTML_Pages')
-print("html_dir = ", index_dir)
+print("html_dir = ", html_dir)
 
 os.chdir(os.path.join(os.getcwd(), 'backend'))
-print("current dir = ", index_dir)
+print("current dir = ", os.getcwd())
 
 def read_html_files(dir):
     print("read_html_files dir = ", dir)
