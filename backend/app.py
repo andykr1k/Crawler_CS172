@@ -17,7 +17,7 @@ logging.disable(sys.maxsize)
 index_dir = os.getcwd()
 
 os.chdir("../")
-html_dir = os.path.join(os.getcwd(), 'crawler', 'HTML_PAGES')
+html_dir = os.path.join(os.getcwd(), 'crawler', 'HTML_Pages')
 
 os.chdir(os.path.join(os.getcwd(), 'backend'))
 
