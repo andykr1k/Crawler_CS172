@@ -112,6 +112,7 @@ def root():
 def search(query):
     try:
         results = retrieve(os.path.join(os.getcwd(), 'index'), query)
+        print(results)
         return jsonify(results)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
