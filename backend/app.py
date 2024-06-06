@@ -12,7 +12,7 @@ from org.apache.lucene.queryparser.classic import QueryParser
 from org.apache.lucene.index import IndexWriter, IndexWriterConfig, IndexOptions, DirectoryReader
 from org.apache.lucene.search import IndexSearcher
 
-# logging.disable(sys.maxsize)
+logging.disable(sys.maxsize)
 
 index_dir = os.path.join(os.getcwd(), 'index')
 
@@ -35,7 +35,7 @@ def read_html_files(dir):
 def create_index(dir, html_dir):
     if not os.path.exists(dir):
         os.mkdir(dir)
-    store = SimpleFSDirectory(dir)
+    store = SimpleFSDirectory(Paths.get(dir))
     analyzer = StandardAnalyzer()
     config = IndexWriterConfig(analyzer)
     config.setOpenMode(IndexWriterConfig.OpenMode.CREATE)
