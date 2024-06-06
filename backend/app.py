@@ -1,7 +1,6 @@
 import os
 from flask import Flask, jsonify
 from bs4 import BeautifulSoup
-import logging
 import sys
 import lucene
 from org.apache.lucene.store import SimpleFSDirectory, NIOFSDirectory
@@ -12,18 +11,20 @@ from org.apache.lucene.queryparser.classic import QueryParser
 from org.apache.lucene.index import IndexWriter, IndexWriterConfig, IndexOptions, DirectoryReader
 from org.apache.lucene.search import IndexSearcher
 
-logging.disable(sys.maxsize)
 
 index_dir = os.path.join(os.getcwd(), 'index')
+print("index_dir = ", index_dir)
 
 os.chdir("../")
 
 html_dir = os.path.join(os.getcwd(), 'crawler', 'HTML_Pages')
+print("html_dir = ", index_dir)
 
 os.chdir(os.path.join(os.getcwd(), 'backend'))
-
+print("current dir = ", index_dir)
 
 def read_html_files(dir):
+    print("read_html_files dir = ", dir)
     html_files = []
     for filename in os.listdir(dir):
         if filename.endswith(".html"):
@@ -34,6 +35,8 @@ def read_html_files(dir):
 
 
 def create_index(dir, html_dir):
+    print("create_index dir = ", dir)
+    print("create_index html_dir = ", html_dir)
     if not os.path.exists(dir):
         os.mkdir(dir)
     store = SimpleFSDirectory(Paths.get(dir))
@@ -73,6 +76,8 @@ def create_index(dir, html_dir):
 
 
 def retrieve(storedir, query):
+    print("retrieve storedir = ", storedir)
+    print("retrieve query = ", query)
     searchDir = NIOFSDirectory(Paths.get(storedir))
     searcher = IndexSearcher(DirectoryReader.open(searchDir))
 
@@ -106,7 +111,7 @@ def root():
 @app.route('/search/<query>', methods=['GET'])
 def search(query):
     try:
-        results = retrieve(os.path.join(os.getcwd(), 'pylucene_index'), query)
+        results = retrieve(os.path.join(os.getcwd(), 'index'), query)
         return jsonify(results)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
