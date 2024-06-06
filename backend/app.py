@@ -70,22 +70,15 @@ def create_index(dir, html_dir):
 
 
 def retrieve(storedir, query):
-    print("storedir = ", storedir)
-    print("q = ", query)
-    print("paths.get = ", Paths.get('index'))
+    print("paths.get = ", Paths.get(storedir))
     searchDir = NIOFSDirectory(Paths.get(storedir))
-    print("searchdir = ", searchDir)
     searcher = IndexSearcher(DirectoryReader.open(searchDir))
-    print("searcher = ", searcher)
 
     parser = QueryParser('Body', StandardAnalyzer())
-    print("parser = ", parser)
 
     parsed_query = parser.parse(query)
-    print("parsed_query = ", parsed_query)
 
     topDocs = searcher.search(parsed_query, 20).scoreDocs
-    print("topDocs = ", topDocs)
 
     topkdocs = []
     for hit in topDocs:
@@ -98,8 +91,6 @@ def retrieve(storedir, query):
             "title": doc.get("Title").replace('\n', '').replace('\t', ''),
             "text": body_text
         })
-
-    print("topkdocs = ", topkdocs)
 
     return topkdocs
 
@@ -114,7 +105,7 @@ def root():
 
 @app.route('/search/<query>', methods=['GET'])
 def search(query):
-    results = retrieve(os.path.join(os.getcwd(), 'index'), query)
+    results = retrieve(index_dir, query)
     print(results)
     return jsonify(results)
 
