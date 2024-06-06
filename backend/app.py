@@ -8,7 +8,7 @@ from java.nio.file import Paths
 from org.apache.lucene.analysis.standard import StandardAnalyzer
 from org.apache.lucene.document import Document, Field, FieldType
 from org.apache.lucene.queryparser.classic import QueryParser
-from org.apache.lucene.index import IndexWriter, IndexWriterConfig, IndexOptions, DirectoryReader, IndexHandler
+from org.apache.lucene.index import IndexWriter, IndexWriterConfig, IndexOptions, DirectoryReader
 from org.apache.lucene.search import IndexSearcher
 
 app = Flask(__name__)
@@ -99,10 +99,10 @@ print("Indexing...")
 lucene.initVM(vmargs=['-Djava.awt.headless=true'])
 create_index(index_dir, html_dir)
 
-@app.before_first_request
-def load_index():
-    global index_handler
-    index_handler = IndexHandler()
+# @app.before_first_request
+# def load_index():
+#     global index_handler
+#     index_handler = IndexHandler()
 
 @app.route('/')
 def root():
