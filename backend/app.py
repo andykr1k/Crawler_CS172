@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify
 from bs4 import BeautifulSoup
 import logging
 import sys
@@ -21,6 +21,7 @@ os.chdir("../")
 html_dir = os.path.join(os.getcwd(), 'crawler', 'HTML_Pages')
 
 os.chdir(os.path.join(os.getcwd(), 'backend'))
+
 
 def read_html_files(dir):
     html_files = []
@@ -54,17 +55,13 @@ def create_index(dir, html_dir):
         soup = BeautifulSoup(c, 'html.parser')
 
         title_tag = soup.find('title')
-        if title_tag:
-            title = title_tag.string
+        title = title_tag.string if title_tag else 'No Title'
 
         author_tag = soup.find('span', class_='caas-author-byline-collapse')
-        if author_tag:
-            author = author_tag.get_text(strip=True)
+        author = author_tag.get_text(strip=True) if author_tag else 'No Author'
 
         date_tag = soup.find('div', {'class': 'caas-attr-time-style'})
-        if date_tag:
-            date_tag = date_tag.find('time')
-            date = date_tag.get_text()
+        date = date_tag.find('time').get_text() if date_tag else 'No Date'
 
         body = soup.get_text()
 
@@ -76,7 +73,7 @@ def create_index(dir, html_dir):
 
 
 def retrieve(storedir, query):
-    searchDir = NIOFSDirectory(storedir)
+    searchDir = NIOFSDirectory(Paths.get(storedir))
     searcher = IndexSearcher(DirectoryReader.open(searchDir))
 
     parser = QueryParser('Body', StandardAnalyzer())
@@ -95,26 +92,26 @@ def retrieve(storedir, query):
             "text": body_text
         })
 
-    # Debugging
-    # for doc in topkdocs:
-    #     print(f"Title: {doc['title']}")
-    #     print(f"BM25 Score: {doc['score']}")
-    #     print("Body:")
-    #     print(doc['text'])
-    #     print('\n')
-
     return topkdocs
 
+
 app = Flask(__name__)
+
 
 @app.route('/')
 def root():
     return "Welcome to Yahoo Finance Search Engine API"
 
+
 @app.route('/search/<query>', methods=['GET'])
-def search(query):        
-    return retrieve(os.path.join(os.getcwd(), 'pylucene_index'), query)
-  
+def search(query):
+    try:
+        results = retrieve(os.path.join(os.getcwd(), 'pylucene_index'), query)
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     print("Indexing...")
     lucene.initVM(vmargs=['-Djava.awt.headless=true'])
