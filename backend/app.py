@@ -55,13 +55,12 @@ def create_index(dir):
                     doc.add(Field('Date', str(obj['date']), metaType))
                     doc.add(Field('Body', str(obj['content']), contextType))
                     writer.addDocument(doc)
+                writer.close()
                 print("JSON data loaded successfully.")
             except json.JSONDecodeError as e:
                 print(f"JSONDecodeError: {e}")
             except Exception as e:
                 print(f"An error occurred: {e}")
-
-    writer.close()
 
 
 def retrieve(storedir, query):
