@@ -14,9 +14,10 @@ from org.apache.lucene.search import IndexSearcher
 
 # logging.disable(sys.maxsize)
 
-index_dir = os.getcwd()
+index_dir = os.path.join(os.getcwd(), 'index')
 
 os.chdir("../")
+
 html_dir = os.path.join(os.getcwd(), 'crawler', 'HTML_Pages')
 
 os.chdir(os.path.join(os.getcwd(), 'backend'))
