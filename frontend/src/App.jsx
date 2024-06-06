@@ -1,6 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Result } from "./components";
 import { Query } from "./functions";
+
+let popular = [
+  {
+    query: "Stock Market News",
+  },
+  {
+    query: "Latest Trends",
+  },
+  {
+    query: "Nvidia",
+  },
+  {
+    query: "Apple",
+  },
+  {
+    query: "Google",
+  },
+  {
+    query: "OpenAI",
+  },
+  {
+    query: "Tesla",
+  },
+  {
+    query: "Microsoft",
+  }
+];
 
 function App() {
   const [search, setSearch] = useState("");
@@ -15,9 +42,15 @@ function App() {
     setSearch(e.target.value);
   };
 
+  const handlePopularSearchClick = async (query) => {
+    setSearch(query);
+    const results = await Query(query);
+    setResults(results);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 min-h-screen">
-      <h1 className="text-white font-bold text-3xl mb-4 mt-20">
+      <h1 className="text-white font-bold text-5xl mb-20 mt-20">
         Yahoo Finance Search Engine
       </h1>
       <div className="w-full max-w-3xl px-4 md:px-0">
@@ -36,7 +69,7 @@ function App() {
             <p>Search</p>
           </button>
         </div>
-        {results && (
+        {results ? (
           <div className="mt-8">
             <div className="bg-white rounded-lg shadow-md p-4 dark:bg-gray-800">
               <h3 className="text-lg font-medium mb-2 dark:text-gray-200">
@@ -56,6 +89,23 @@ function App() {
                   );
                 })}
               </div>
+            </div>
+          </div>
+        ) : (
+          <div className="w-full px-4 py-3 text-lg rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-200 mt-8">
+            <h2>Popular Searches</h2>
+            <div className="grid grid-cols-4 gap-2 mt-4">
+              {popular.map((item, index) => {
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handlePopularSearchClick(item.query)}
+                    className="w-full bg-gray-200 dark:bg-gray-700 p-2 rounded-lg text-center"
+                  >
+                    <h3 className="text-md">{item.query}</h3>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
