@@ -35,7 +35,7 @@ def read_html_files(dir):
 def create_index(dir, html_dir):
     if not os.path.exists(dir):
         os.mkdir(dir)
-    store = SimpleFSDirectory(Paths.get(dir))
+    store = SimpleFSDirectory(dir)
     analyzer = StandardAnalyzer()
     config = IndexWriterConfig(analyzer)
     config.setOpenMode(IndexWriterConfig.OpenMode.CREATE)
@@ -76,8 +76,7 @@ def create_index(dir, html_dir):
 
 
 def retrieve(storedir, query):
-    print(storedir)
-    searchDir = NIOFSDirectory(Paths.get(storedir))
+    searchDir = NIOFSDirectory(storedir)
     searcher = IndexSearcher(DirectoryReader.open(searchDir))
 
     parser = QueryParser('Body', StandardAnalyzer())
