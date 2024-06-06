@@ -40,17 +40,26 @@ def create_index(dir):
     contextType.setTokenized(True)
     contextType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS)
 
-    f = open(json_location)
-    data = json.load(f)
-
-    for obj in data:
-        doc = Document()
-        doc.add(Field('Title', str(obj['title']), contextType))
-        doc.add(Field('Link', str(obj['link']), metaType))
-        doc.add(Field('Author', str(obj['author']), metaType))
-        doc.add(Field('Date', str(obj['date']), metaType))
-        doc.add(Field('Body', str(obj['content']), contextType))
-        writer.addDocument(doc)
+    if not os.path.exists(json_location):
+        print(f"File not found: {json_location}")
+    else:
+        with open(json_location, 'r') as f:
+            try:
+                content = f.read()
+                data = json.loads(content)
+                for obj in data:
+                    doc = Document()
+                    doc.add(Field('Title', str(obj['title']), contextType))
+                    doc.add(Field('Link', str(obj['link']), metaType))
+                    doc.add(Field('Author', str(obj['author']), metaType))
+                    doc.add(Field('Date', str(obj['date']), metaType))
+                    doc.add(Field('Body', str(obj['content']), contextType))
+                    writer.addDocument(doc)
+                print("JSON data loaded successfully.")
+            except json.JSONDecodeError as e:
+                print(f"JSONDecodeError: {e}")
+            except Exception as e:
+                print(f"An error occurred: {e}")
 
     writer.close()
 
@@ -72,13 +81,16 @@ def retrieve(storedir, query):
     topkdocs = []
     for hit in topDocs:
         doc = searcher.doc(hit.doc)
-        body_text = doc.get("Body").strip()[500:2000].replace('\n', '')
+        body_text = doc.get("Body").strip().replace('\n', '')
         body_text = " ".join(body_text.split())
 
         topkdocs.append({
             "score": hit.score,
             "title": doc.get("Title").replace('\n', '').replace('\t', ''),
-            "text": body_text
+            "text": body_text,
+            "link": doc.get("Link"),
+            "author": doc.get("Author"),
+            "date": doc.get("Date")
         })
 
     return topkdocs
