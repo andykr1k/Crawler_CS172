@@ -1,278 +1,203 @@
 from bs4 import BeautifulSoup
 import requests
 import argparse
-import threading
 import os
 import json
+from queue import Queue
+from multiprocessing import Process
 
-# Input: String
-# Output: Size of string in bytes (utf-8)
-def getLengthUTF8(s):
+
+def get_length_utf8(s):
+    """Returns the size of a string in bytes (utf-8)."""
     return len(s.encode('utf-8'))
 
-# Input: URL String
-# Output: Beautiful soup object with HTML response
-def GetHTML(URL):
-    print("Scraping: ", URL)
-    response = requests.get(URL)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    AddHTMLToFolder(soup)
-    return soup
 
-# Input: Soup Object and Link Queue
-# Output: Queue filled with links from Soup Object
-def GetLinks(soup, queue, depth):
+def get_html(url):
+    """Returns a BeautifulSoup object with the HTML response of the given URL."""
+    print("Scraping:", url)
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        add_html_to_folder(soup)
+        return soup
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP error: {e}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+    return None
+
+
+def get_links(soup, queue, depth):
+    """Adds links from the given BeautifulSoup object to the queue, incrementing the depth."""
     fin_stream = soup.find('div', {'id': 'Fin-Stream'})
     if fin_stream:
         for li in fin_stream.find_all('li'):
             a_tag = li.find('a', href=True)
-            if a_tag and 'https://' in a_tag['href']:
-                if 'a.beap.gemini.' not in a_tag['href']:
-                    if a_tag['href'] not in queue:
-                        queue.append((a_tag['href'], depth + 1))
+            if a_tag and 'https://' in a_tag['href'] and 'a.beap.gemini.' not in a_tag['href']:
+                if a_tag['href'] not in list(queue.queue):
+                    queue.put((a_tag['href'], depth + 1))
     return queue
 
-# Input: Soup Object and Link Queue
-# Output: Queue filled with links from Soup Object
-def GetDepthLinks(soup, queue, depth, hops, URL):
-    if hops < depth:
+
+def get_depth_links(soup, queue, depth, hops, base_url):
+    """Adds links from the given BeautifulSoup object to the queue up to the specified hops."""
+    if depth >= hops:
         return queue
-    links = soup.find_all('a')
-    for link in links:
-        if 'href' in link.attrs:
-            if 'https://' not in link['href']:
-                l = URL + link['href']
-                if l not in queue:
-                    queue.append((l, depth))
-            else:
-                if link['href'] not in queue:
-                    queue.append((link['href'], depth))
+    for link in soup.find_all('a', href=True):
+        href = link['href']
+        if 'https://' not in href:
+            href = base_url + href
+        if href not in list(queue.queue):
+            queue.put((href, depth + 1))
     return queue
 
-# Input: Soup Object
-# Output: All text from HTML
-def GetContent(soup):
-    content = []
+
+def get_content(soup):
+    """Extracts and returns the content details from the given BeautifulSoup object."""
     details = {
-        'title': '',
-        'author': '',
-        'date': '',
-        'content': ''
+        'title': soup.find('title').string if soup.find('title') else '',
+        'author': soup.find('span', class_='caas-author-byline-collapse').get_text(strip=True) if soup.find('span', class_='caas-author-byline-collapse') else '',
+        'date': soup.find('div', class_='caas-attr-time-style').find('time').get_text() if soup.find('div', class_='caas-attr-time-style') and soup.find('div', class_='caas-attr-time-style').find('time') else '',
+        'content': ' '.join(p.get_text() for p in soup.find_all('p'))
     }
-
-    title_tag = soup.find('title')
-    if title_tag:
-        details['title'] = title_tag.string
-
-    author_tag = soup.find('span', class_='caas-author-byline-collapse') 
-    if author_tag:
-        details['author'] = author_tag.get_text(strip=True)
-
-    date_tag = soup.find('div', {'class': 'caas-attr-time-style'})
-    if date_tag:
-        date_tag = date_tag.find('time')
-        details['date'] = date_tag.get_text()
-
-    for p in soup.find_all('p'):
-        content.append(p.get_text())
-
-    details['content'] = ' '.join(content)
-
     return details
 
-# Input: File Name String
-# Output: N/A
-# Description: Function to create new file, add open bracket for JSON and close file
-def CreateFile(file_name):
-    f = open(file_name, "w")
-    f.write('[')
-    f.close()
-    return
 
-# Input: Soup Object
-# Output: N/A
-# Description: Function to create files and save HTML files in HTML_Pages folder
-def AddHTMLToFolder(soup):
-    html_string = str(soup.prettify())
-    if soup.find('title'):
-        page_title = soup.find('title').string.replace(
-            " ", "_").replace("/", "_").replace("\\", "_")
-        file_name = f"{page_title}.html"
-    else:
-        file_name = "error.html"
+def create_file(file_name):
+    """Creates a new JSON file and writes an opening bracket."""
+    with open(file_name, "w") as f:
+        f.write('[\n')
 
+
+def add_html_to_folder(soup):
+    """Saves the HTML content of the given BeautifulSoup object in the HTML_Pages folder."""
+    html_string = soup.prettify()
+    page_title = (soup.find('title').string if soup.find(
+        'title') else "error").replace(" ", "_").replace("/", "_").replace("\\", "_")
+    file_name = f"{page_title}.html"
     folder_name = "HTML_Pages"
     file_path = os.path.join(folder_name, file_name)
-    print("HTML added to path: ", file_path)
-
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
-
+    print("HTML added to path:", file_path)
     with open(file_path, "w", encoding="utf-8") as file:
         file.write(html_string)
 
-    return
 
-# Input: File Name String and dictionary object
-# Output: N/A
-# Description: Function to add a JSON dictionary to JSON file also adds comma after JSON dictionary is appended
-def AddToFile(file_name, dictionary):
-    f = open(file_name, "a")
-    json.dump(dictionary, f)
-    f.write(",")
-    f.close()
-    return
+def add_to_file(file_name, dictionary):
+    """Appends a JSON dictionary to the file, followed by a comma."""
+    with open(file_name, "a") as f:
+        f.write(",\n")
+        json.dump(dictionary, f)
 
-# Input: File Name String
-# Output: N/A
-# Description: Function to append a close bracket to end of file
-def FinishWritingFile(file_path):
-    f = open(file_path, "a")
-    f.write(']')
-    f.close()
-    return
 
-# Input: Link String and Content String
-# Output: Dictionary
-def CreateDictionary(link, details):
-    dictionary = {
+def finish_writing_file(file_path):
+    """Appends a closing bracket to the JSON file."""
+    with open(file_path, "a") as f:
+        f.write('\n]')
+
+
+def create_dictionary(link, details):
+    """Creates and returns a dictionary with the given link and content details."""
+    return {
         "link": link,
         "title": details['title'],
         "author": details['author'],
         "date": details['date'],
         "content": details['content']
-
     }
-    return dictionary
 
-# Input: File Name String
-# Output: Size of file in bytes
-def CheckFileSize(file_name):
-    file_size = os.path.getsize(file_name)
-    return file_size
 
-# Main scraping function after seed has been scraped (Used for multithreading)
-def ScrapeWrite(queue, OUTPUT_FILE, MAXIMUM_BYTES, MAXIMUM_HOPS, URL):
-    while True:
-        try:
-            link, depth = queue.pop(0)
-        except IndexError:
-            break
-        print("Link: ", link, "\nDepth from root: ", depth)
-        print("File Size: ", CheckFileSize(OUTPUT_FILE))
-        print("\n")
+def check_file_size(file_name):
+    """Returns the size of the specified file in bytes."""
+    return os.path.getsize(file_name)
 
-        # Check for file size and if exceeded stop scraping
-        if CheckFileSize(OUTPUT_FILE) > MAXIMUM_BYTES:
+
+def scrape_process(queue, output_file, maximum_bytes, maximum_hops, base_url, max_pages):
+    """Main scraping process."""
+    while not queue.empty() and max_pages > 0:
+        link, depth = queue.get()
+        print("Link:", link, "\nDepth from root:", depth)
+
+        print("File Size:", check_file_size(output_file), "\n")
+        if check_file_size(output_file) > maximum_bytes:
             print("Output file size limit exceeded!")
             break
 
-        # Parse the HTML content of the page
-        soup = GetHTML(link)
+        max_pages -= 1
 
-        # Get Content
-        content = GetContent(soup)
+        soup = get_html(link)
+        if soup is None:
+            continue
 
-        # Create Dict
-        dictionary = CreateDictionary(link, content)
+        content = get_content(soup)
+        dictionary = create_dictionary(link, content)
 
-        # Check current depth, queue links from page if within MAXIMUM_HOPS
-        if depth < MAXIMUM_HOPS:
+        if depth < maximum_hops:
             print("Adding links to queue")
-            print("Queue size: ", len(queue))
-            queue = GetDepthLinks(
-                soup, queue, depth+1, MAXIMUM_HOPS, URL)
+            print("Queue size:", queue.qsize())
+            queue = get_depth_links(soup, queue, depth, maximum_hops, base_url)
 
-        # Add Dictionary to JSON file
-        AddToFile(OUTPUT_FILE, dictionary)
+        add_to_file(output_file, dictionary)
+        queue.task_done()
 
-    print("Thread finished.")
 
 def main():
-    # Instantiate Argument Parser
+    """Main function to parse arguments and initiate the scraping process."""
     parser = argparse.ArgumentParser()
+    parser.add_argument('--hops', required=True, type=int,
+                        help='Number of hops from seed')
+    parser.add_argument('--seed', required=True, type=str, help='Seed URL')
+    parser.add_argument('--out', required=True, type=str,
+                        help='Output file path')
+    parser.add_argument('--threads', type=int, default=1,
+                        help='Number of threads')
+    parser.add_argument('--mb', type=float, default=10,
+                        help='File size limit for output in MB')
+    parser.add_argument('--pages', type=int, default=100,
+                        help='Max number of pages to scrape')
 
-    # Adding Arguments
-    parser.add_argument('--hops', dest='hops',
-                        type=str, help='Add number of hops from seed')
-    parser.add_argument('--seed', dest='seed',
-                        type=str, help='Add path to seed file')
-    parser.add_argument('--out', dest='out',
-                        type=str, help='Add output directory')
-    parser.add_argument('--threads', dest='threads',
-                        type=str, help='Add number of threads')
-    parser.add_argument('--mb', dest='mb',
-                        type=str, help='Add file size for output (MB)')
-    parser.add_argument('--pages', dest='pages',
-                    type=str, help='Max number of pages to scrape')
-    
-    # Getting Arguments
     args = parser.parse_args()
-
-    if not (args.hops and args.seed and args.out):
-        print("Insufficient argument. Include the hops, seed and out")
-        return
-    
-    MAXIMUM_HOPS = int(args.hops)
-    MAXIMUM_BYTES = float(args.mb) * 1000000
-    THREADS = int(args.threads) if args.threads else 1
-    OUTPUT_FILE = args.out
-    URL = args.seed
-    MAXIMUM_PAGES = int(args.pages)
+    max_hops = args.hops
+    max_bytes = args.mb * 1_000_000
+    threads_count = args.threads
+    output_file = args.out
+    seed_url = args.seed
+    max_pages = args.pages
 
     try:
-        response = requests.head(URL)
-        if response.status_code != 200:
-            print("Invalid seed URL.")
-            return
-    except requests.exceptions.RequestException as e:
+        response = requests.head(seed_url)
+        response.raise_for_status()
+    except requests.RequestException as e:
         print("Error:", e)
         return
 
-    #Testing Arguments
-    # print("Testing Args")
-    # print(args.hops)
-    # print(args.seed)
-    # print(args.out)
-    # print(args.threads)
-    # print(args.mb)
+    queue = Queue()
+    create_file(output_file)
 
-    # Set Up Link Queue
-    queue = []
+    soup = get_html(seed_url)
+    if soup is None:
+        return
 
-    # Create JSON file
-    CreateFile(OUTPUT_FILE)
+    content = get_content(soup)
+    dictionary = create_dictionary(seed_url, content)
+    add_to_file(output_file, dictionary)
+    max_pages -= 1
 
-    # Parse the HTML content of the page
-    soup = GetHTML(URL)
+    queue = get_links(soup, queue, 0)
 
-    # Get Root Content
-    content = GetContent(soup)
+    processes = []
+    for _ in range(threads_count):
+        p = Process(target=scrape_process, args=(
+            queue, output_file, max_bytes, max_hops, seed_url, max_pages))
+        p.start()
+        processes.append(p)
 
-    # Create Root Dict
-    dictionary = CreateDictionary(URL, content)
+    for p in processes:
+        p.join()
 
-    # Add Dictionary to JSON file
-    AddToFile(OUTPUT_FILE, dictionary)
-    MAXIMUM_PAGES -= 1
+    finish_writing_file(output_file)
+    print("File Size is:", check_file_size(output_file), "bytes")
 
-    # Get all links from root
-    queue = GetLinks(soup, queue, 0)
 
-    threads = []
-    for _ in range(THREADS):
-        t = threading.Thread(target=ScrapeWrite, args=(
-            queue, OUTPUT_FILE, MAXIMUM_BYTES, MAXIMUM_HOPS, URL))
-        t.start()
-        threads.append(t)
-
-    for t in threads:
-        t.join()
-        
-    # Finish Writing to file
-    FinishWritingFile(OUTPUT_FILE)
-    
-    # Print file size at end of script
-    print("File Size is :", CheckFileSize(OUTPUT_FILE), "bytes")
-
-main()
+if __name__ == "__main__":
+    main()
