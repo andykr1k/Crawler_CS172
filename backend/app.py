@@ -71,6 +71,9 @@ def create_index(dir, html_dir):
 
 
 def retrieve(storedir, query):
+    vm_env = lucene.getVMEnv()
+    if vm_env is not None:
+        vm_env.attachCurrentThread()
     print("paths.get = ", Paths.get(storedir))
     searchDir = NIOFSDirectory(Paths.get(storedir))
     searcher = IndexSearcher(DirectoryReader.open(searchDir))
@@ -98,11 +101,6 @@ def retrieve(storedir, query):
 print("Indexing...")
 lucene.initVM(vmargs=['-Djava.awt.headless=true'])
 create_index(index_dir, html_dir)
-
-# @app.before_first_request
-# def load_index():
-#     global index_handler
-#     index_handler = IndexHandler()
 
 @app.route('/')
 def root():
