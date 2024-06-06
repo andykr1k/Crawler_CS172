@@ -14,10 +14,10 @@ function App() {
   const handleSearchValueChange = (e) => {
     setSearch(e.target.value);
   };
-  
+
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
-      <h1 className="text-white font-bold text-3xl mb-4">
+    <div className="flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 min-h-screen">
+      <h1 className="text-white font-bold text-3xl mb-4 mt-20">
         Yahoo Finance Search Engine
       </h1>
       <div className="w-full max-w-3xl px-4 md:px-0">
@@ -42,15 +42,16 @@ function App() {
               <h3 className="text-lg font-medium mb-2 dark:text-gray-200">
                 Search Results
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {results.map((item, index) => {
                   return (
                     <Result
                       key={index}
                       title={item.title}
                       date={item.date}
-                      description={item.description}
+                      description={item.text}
                       link={item.link}
+                      score={item.score}
                     />
                   );
                 })}

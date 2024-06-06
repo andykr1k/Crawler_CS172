@@ -8,6 +8,7 @@ export default function Result(props) {
         <h4 className="text-lg font-medium mb-2">{props.title}</h4>
         <p className="text-gray-600 dark:text-gray-400">{props.description}</p>
         <p className="text-gray-600 dark:text-gray-400">{props.date}</p>
+        <p className="text-gray-600 dark:text-gray-400">Similarity Score: {props.score}</p>
       </a>
     );
 }

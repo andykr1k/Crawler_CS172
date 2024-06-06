@@ -1,8 +1,6 @@
 import os
 from flask import Flask, jsonify
-from bs4 import BeautifulSoup
 from flask_cors import CORS
-import sys
 import lucene
 from org.apache.lucene.store import SimpleFSDirectory, NIOFSDirectory
 from java.nio.file import Paths
@@ -11,6 +9,7 @@ from org.apache.lucene.document import Document, Field, FieldType
 from org.apache.lucene.queryparser.classic import QueryParser
 from org.apache.lucene.index import IndexWriter, IndexWriterConfig, IndexOptions, DirectoryReader
 from org.apache.lucene.search import IndexSearcher
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -19,21 +18,11 @@ index_dir = os.path.join(os.getcwd(), 'index')
 
 os.chdir("../")
 
-html_dir = os.path.join(os.getcwd(), 'crawler', 'HTML_Pages')
+json_location = os.path.join(os.getcwd(), 'crawler', 'output.json')
 
 os.chdir(os.path.join(os.getcwd(), 'backend'))
 
-def read_html_files(dir):
-    html_files = []
-    for filename in os.listdir(dir):
-        if filename.endswith(".html"):
-            filepath = os.path.join(dir, filename)
-            with open(filepath, 'r', encoding='utf-8') as file:
-                html_files.append((filename, file.read()))
-    return html_files
-
-
-def create_index(dir, html_dir):
+def create_index(dir):
     if not os.path.exists(dir):
         os.mkdir(dir)
     store = SimpleFSDirectory(Paths.get(dir))
@@ -51,24 +40,18 @@ def create_index(dir, html_dir):
     contextType.setTokenized(True)
     contextType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS)
 
-    for filename, c in read_html_files(html_dir):
-        soup = BeautifulSoup(c, 'html.parser')
+    f = open(json_location)
+    data = json.load(f)
 
-        title_tag = soup.find('title')
-        title = title_tag.string if title_tag else 'No Title'
-
-        author_tag = soup.find('span', class_='caas-author-byline-collapse')
-        author = author_tag.get_text(strip=True) if author_tag else 'No Author'
-
-        date_tag = soup.find('div', {'class': 'caas-attr-time-style'})
-        date = date_tag.find('time').get_text() if date_tag else 'No Date'
-
-        body = soup.get_text()
-
+    for obj in data:
         doc = Document()
-        doc.add(Field('Title', str(title), metaType))
-        doc.add(Field('Body', str(body), contextType))
+        doc.add(Field('Title', str(obj.title), metaType))
+        doc.add(Field('Link', str(obj.link), metaType))
+        doc.add(Field('Author', str(obj.author), metaType))
+        doc.add(Field('Date', str(obj.date), metaType))
+        doc.add(Field('Body', str(obj.content), contextType))
         writer.addDocument(doc)
+
     writer.close()
 
 
@@ -102,7 +85,7 @@ def retrieve(storedir, query):
 
 print("Indexing...")
 lucene.initVM(vmargs=['-Djava.awt.headless=true'])
-create_index(index_dir, html_dir)
+create_index(index_dir)
 
 @app.route('/')
 def root():
