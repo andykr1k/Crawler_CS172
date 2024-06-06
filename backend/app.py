@@ -74,7 +74,7 @@ def retrieve(storedir, query):
     vm_env = lucene.getVMEnv()
     if vm_env is not None:
         vm_env.attachCurrentThread()
-    print("paths.get = ", Paths.get(storedir))
+
     searchDir = NIOFSDirectory(Paths.get(storedir))
     searcher = IndexSearcher(DirectoryReader.open(searchDir))
 
