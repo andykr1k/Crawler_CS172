@@ -112,23 +112,19 @@ def retrieve(storedir, query):
 
     return topkdocs
 
-
 print("Indexing...")
 lucene.initVM(vmargs=['-Djava.awt.headless=true'])
 create_index(index_dir)
 
-
 @app.route('/')
 def root():
     return "Welcome to Yahoo Finance Search Engine API"
-
 
 @app.route('/search/<query>', methods=['GET'])
 def search(query):
     results = retrieve(index_dir, query)
     print(results)
     return jsonify(results)
-
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8080)

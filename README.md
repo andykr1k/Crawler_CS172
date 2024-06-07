@@ -1,6 +1,20 @@
-# Guide
+# Search Engine
 
-## Setting Up Virtual Enviroment (If Wanted)
+## Description
+
+Yahoo Stock Market News Search Engine built with PyLucene.
+
+## Usage
+
+### Steps
+
+1. Crawl Yahoo Stock Market News
+2. Start Backend for indexing and API endpoint
+3. Start frontend to interact with API
+
+### Crawler
+
+#### Setting Up Virtual Enviroment (If Wanted)
 
 Unix/Linux
 ```python
@@ -14,7 +28,7 @@ python -m venv env
 source env/Scripts/activate
 ```
 
-## Installation
+#### Installation
 
 ```python
 pip install -r requirements
@@ -24,11 +38,11 @@ brew install subversion
 svn co https://svn.apache.org/repos/asf/lucene/pylucene/trunk/jcc jcc
 ```
 
-## Usage
+#### Usage
 
-### Interacting Directly with Python Script
+##### Interacting Directly with Python Script
 
-#### Arguments
+###### Arguments
 
 - "--hops"
   - Number of hops from root
@@ -43,15 +57,15 @@ svn co https://svn.apache.org/repos/asf/lucene/pylucene/trunk/jcc jcc
 - "--pages"
   - Number of pages to scrape
   
-#### Example
+###### Example
 
 ```python
 python main.py --hops 3 --seed https://finance.yahoo.com/topic/stock-market-news/ --out output.json --threads 4 --mb 2 --pages 10000
 ```
 
-### Using Crawler.sh/Crawler.bat
+##### Using Crawler.sh/Crawler.bat
 
-#### Set Up Permissions
+###### Set Up Permissions
 
 Unix/Linux
 ```bash
@@ -63,7 +77,7 @@ Windows
 chmod 700 crawler.bat
 ```
 
-#### Arguments
+###### Arguments
 
 - First Argument
   - Number of hops from root
@@ -78,7 +92,7 @@ chmod 700 crawler.bat
 - Sixth Argument
   - Max number of pages to scrape
   
-#### Example
+###### Example
 
 Unix/Linux
 ```bash
@@ -88,4 +102,52 @@ Unix/Linux
 Windows
 ```bash
 ./crawler.bat 3 https://finance.yahoo.com/topic/stock-market-news/ output.json 4 0.8 10000   
+```
+
+
+### Backend 
+
+
+#### Setting Up Virtual Enviroment (If Wanted)
+
+Unix/Linux
+```python
+python -m venv env
+source env/bin/activate
+```
+
+Windows
+```python
+python -m venv env
+source env/Scripts/activate
+```
+
+#### Installation
+
+```python
+pip install -r requirements
+```
+
+#### Usage
+
+**May need to change request url in front end to match backend url - frontend is set up to request from class-067 server**
+
+```python
+python3 app.py
+```
+
+### Frontend
+
+#### Installation
+
+```
+npm i
+```
+
+#### Usage
+
+**Make sure you are running this on campus or using UCR's VPN**
+
+```
+npm run dev
 ```
