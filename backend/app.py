@@ -23,6 +23,16 @@ json_location = os.path.join(os.getcwd(), 'crawler', 'output.json')
 os.chdir(os.path.join(os.getcwd(), 'backend'))
 
 
+def is_unique_object(obj, seen_objects):
+    obj_tuple = tuple(sorted(obj.items()))
+
+    if obj_tuple in seen_objects:
+        return False
+    else:
+        seen_objects.add(obj_tuple)
+        return True
+
+
 def create_index(dir):
     if not os.path.exists(dir):
         os.mkdir(dir)
@@ -48,7 +58,15 @@ def create_index(dir):
             try:
                 content = f.read()
                 data = json.loads(content)
-                for obj in data:
+                if isinstance(data, list):
+                    seen_objects = set()
+                    unique_objects = []
+
+                    for obj in data:
+                        if is_unique_object(obj, seen_objects):
+                            unique_objects.append(obj)
+
+                for obj in unique_objects:
                     doc = Document()
                     doc.add(Field('Title', str(obj['title']), contextType))
                     doc.add(Field('Link', str(obj['link']), metaType))
@@ -75,7 +93,7 @@ def retrieve(storedir, query):
 
     parsed_query = parser.parse(query)
 
-    topDocs = searcher.search(parsed_query, 20).scoreDocs
+    topDocs = searcher.search(parsed_query, 10).scoreDocs
 
     topkdocs = []
     for hit in topDocs:
