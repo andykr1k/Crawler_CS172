@@ -31,7 +31,7 @@ source env/Scripts/activate
 #### Installation
 
 ```python
-pip install -r requirements
+pip install -r requirements.txt
 
 brew install subversion
 
