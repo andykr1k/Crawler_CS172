@@ -72,14 +72,13 @@ def create_file(file_name):
 
 def add_html_to_folder(soup):
     """Saves the HTML content of the given BeautifulSoup object in the HTML_Pages folder."""
-    # Ensure the folder exists
+    folder_name = "HTML_Pages"
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
     html_string = soup.prettify()
     page_title = (soup.find('title').string if soup.find(
         'title') else "error").replace(" ", "_").replace("/", "_").replace("\\", "_")
     file_name = f"{page_title}.html"
-    folder_name = "HTML_Pages"
     file_path = os.path.join(folder_name, file_name)
     print("HTML added to path:", file_path)
     with open(file_path, "w", encoding="utf-8") as file:
